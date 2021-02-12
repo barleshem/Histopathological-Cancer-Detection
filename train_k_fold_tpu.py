@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
         mkdir_if_not_exist(os.path.join(output_path, str(fold)))
 
-        h5_path = output_path + "/model_"+str(fold)+".h5"
+        h5_path = output_path + "/proposed_model_"+str(fold)+".h5"
 
         callbacks = [
             TerminateOnNaN(),
