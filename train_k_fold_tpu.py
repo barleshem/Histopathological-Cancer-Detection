@@ -35,6 +35,7 @@ from Model.ResNeXt import *
 from Model.ResNeXt_CBAM import *
 from Model.se_resnext import *
 from Model.baseline_model import *
+from Model.proposed_model import *
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -150,12 +151,25 @@ if __name__ == '__main__':
         TPU_WORKER = 'grpc://' + os.environ['COLAB_TPU_ADDR']
         tf.logging.set_verbosity(tf.logging.INFO)
         
-        #
-        res_model = get_model_resnet50(img_size,batch_size)
+        # Loading the proposed model
+        pro_model = proposed_model()
+        pro_model = pro_model.output
+    
+        out1 = GlobalMaxPooling2D()(pro_model)
+        out2 = GlobalAveragePooling2D()(x)
+        #out3 = Flatten()(x)
+        out = concatenate([out1,out2])
+        out = BatchNormalization(epsilon = 1e-5)(out)
+        fc = Dropout(0.4)(out)
+        fc = Dense(256,activation = 'relu')(fc)
+        fc = BatchNormalization(epsilon = 1e-5)(fc)
+        fc = Dropout(0.3)(fc)
+        X = Dense(1, activation='sigmoid', kernel_initializer='glorot_uniform', bias_initializer='zeros')(fc)
+        model =  Model(inputs=pro_model.input, outputs=X)
         
         # Converting the Keras model to TPU model using tf.contrib.tpu.keras_to_tpu_model
         model = tf.contrib.tpu.keras_to_tpu_model(
-            res_model,
+            pro_model,
             strategy=tf.contrib.tpu.TPUDistributionStrategy(
                 tf.contrib.cluster_resolver.TPUClusterResolver(TPU_WORKER)))
 
