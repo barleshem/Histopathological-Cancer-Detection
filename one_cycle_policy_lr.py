@@ -15,32 +15,7 @@ class OneCycleLR(Callback):
                  maximum_momentum=0.95,
                  minimum_momentum=0.85,
                  verbose=True):
-        """ This callback implements a cyclical learning rate policy (CLR).
-        This is a special case of Cyclic Learning Rates, where we have only 1 cycle.
-        After the completion of 1 cycle, the learning rate will decrease rapidly to
-        100th its initial lowest value.
-        # Arguments:
-            max_lr: Float. Initial learning rate. This also sets the
-                starting learning rate (which will be 10x smaller than
-                this), and will increase to this value during the first cycle.
-            end_percentage: Float. The percentage of all the epochs of training
-                that will be dedicated to sharply decreasing the learning
-                rate after the completion of 1 cycle. Must be between 0 and 1.
-            scale_percentage: Float or None. If float, must be between 0 and 1.
-                If None, it will compute the scale_percentage automatically
-                based on the `end_percentage`.
-            maximum_momentum: Optional. Sets the maximum momentum (initial)
-                value, which gradually drops to its lowest value in half-cycle,
-                then gradually increases again to stay constant at this max value.
-                Can only be used with SGD Optimizer.
-            minimum_momentum: Optional. Sets the minimum momentum at the end of
-                the half-cycle. Can only be used with SGD Optimizer.
-            verbose: Bool. Whether to print the current learning rate after every
-                epoch.
-        # Reference
-            - [A disciplined approach to neural network hyper-parameters: Part 1 -- learning rate, batch size, weight_decay, and weight decay](https://arxiv.org/abs/1803.09820)
-            - [Super-Convergence: Very Fast Training of Residual Networks Using Large Learning Rates](https://arxiv.org/abs/1708.07120)
-        """
+    
         super(OneCycleLR, self).__init__()
 
         if end_percentage < 0. or end_percentage > 1.:
@@ -79,15 +54,7 @@ class OneCycleLR(Callback):
         self.history = {}
 
     def compute_lr(self):
-        """
-        Compute the learning rate based on which phase of the cycle it is in.
-        - If in the first half of training, the learning rate gradually increases.
-        - If in the second half of training, the learning rate gradually decreases.
-        - If in the final `end_percentage` portion of training, the learning rate
-            is quickly reduced to near 100th of the original min learning rate.
-        # Returns:
-            the new learning rate
-        """
+       
         if self.clr_iterations > 2 * self.mid_cycle_id:
             current_percentage = (self.clr_iterations - 2 * self.mid_cycle_id)
             current_percentage /= float((self.num_iterations - 2 * self.mid_cycle_id))
@@ -111,15 +78,7 @@ class OneCycleLR(Callback):
         return new_lr
 
     def compute_momentum(self):
-        """
-         Compute the momentum based on which phase of the cycle it is in.
-        - If in the first half of training, the momentum gradually decreases.
-        - If in the second half of training, the momentum gradually increases.
-        - If in the final `end_percentage` portion of training, the momentum value
-            is kept constant at the maximum initial value.
-        # Returns:
-            the new momentum value
-        """
+        
         if self.clr_iterations > 2 * self.mid_cycle_id:
             new_momentum = self.max_momentum
 
@@ -211,57 +170,7 @@ class LRFinder(Callback):
                  loss_smoothing_beta=0.98,
                  save_dir=None,
                  verbose=True):
-        """
-        This class uses the Cyclic Learning Rate history to find a
-        set of learning rates that can be good initializations for the
-        One-Cycle training proposed by Leslie Smith in the paper referenced
-        below.
-        A port of the Fast.ai implementation for Keras.
-        # Note
-        This requires that the model be trained for exactly 1 epoch. If the model
-        is trained for more epochs, then the metric calculations are only done for
-        the first epoch.
-        # Interpretation
-        Upon visualizing the loss plot, check where the loss starts to increase
-        rapidly. Choose a learning rate at somewhat prior to the corresponding
-        position in the plot for faster convergence. This will be the maximum_lr lr.
-        Choose the max value as this value when passing the `max_val` argument
-        to OneCycleLR callback.
-        Since the plot is in log-scale, you need to compute 10 ^ (-k) of the x-axis
-        # Arguments:
-            num_samples: Integer. Number of samples in the dataset.
-            batch_size: Integer. Batch size during training.
-            minimum_lr: Float. Initial learning rate (and the minimum).
-            maximum_lr: Float. Final learning rate (and the maximum).
-            lr_scale: Can be one of ['exp', 'linear']. Chooses the type of
-                scaling for each update to the learning rate during subsequent
-                batches. Choose 'exp' for large range and 'linear' for small range.
-            validation_data: Requires the validation dataset as a tuple of
-                (X, y) belonging to the validation set. If provided, will use the
-                validation set to compute the loss metrics. Else uses the training
-                batch loss. Will warn if not provided to alert the user.
-            validation_sample_rate: Positive or Negative Integer. Number of batches to sample from the
-                validation set per iteration of the LRFinder. Larger number of
-                samples will reduce the variance but will take longer time to execute
-                per batch.
-                If Positive > 0, will sample from the validation dataset
-                If Megative, will use the entire dataset
-            stopping_criterion_factor: Integer or None. A factor which is used
-                to measure large increase in the loss value during training.
-                Since callbacks cannot stop training of a model, it will simply
-                stop logging the additional values from the epochs after this
-                stopping criterion has been met.
-                If None, this check will not be performed.
-            loss_smoothing_beta: Float. The smoothing factor for the moving
-                average of the loss function.
-            save_dir: Optional, String. If passed a directory path, the callback
-                will save the running loss and learning rates to two separate numpy
-                arrays inside this directory. If the directory in this path does not
-                exist, they will be created.
-            verbose: Whether to print the learning rate after every batch of training.
-        # References:
-            - [A disciplined approach to neural network hyper-parameters: Part 1 -- learning rate, batch size, weight_decay, and weight decay](https://arxiv.org/abs/1803.09820)
-        """
+        
         super(LRFinder, self).__init__()
 
         if lr_scale not in ['exp', 'linear']:
@@ -417,16 +326,7 @@ class LRFinder(Callback):
         warnings.simplefilter("default")
 
     def plot_schedule(self, clip_beginning=None, clip_endding=None):
-        """
-        Plots the schedule from the callback itself.
-        # Arguments:
-            clip_beginning: Integer or None. If positive integer, it will
-                remove the specified portion of the loss graph to remove the large
-                loss values in the beginning of the graph.
-            clip_endding: Integer or None. If negative integer, it will
-                remove the specified portion of the ending of the loss graph to
-                remove the sharp increase in the loss values at high learning rates.
-        """
+        
         try:
             import matplotlib.pyplot as plt
             plt.style.use('seaborn-white')
@@ -464,20 +364,7 @@ class LRFinder(Callback):
                                   directory,
                                   clip_beginning=None,
                                   clip_endding=None):
-        """
-        Loads the training history from the saved numpy files in the given directory.
-        # Arguments:
-            directory: String. Path to the directory where the serialized numpy
-                arrays of the loss and learning rates are saved.
-            clip_beginning: Integer or None. If positive integer, it will
-                remove the specified portion of the loss graph to remove the large
-                loss values in the beginning of the graph.
-            clip_endding: Integer or None. If negative integer, it will
-                remove the specified portion of the ending of the loss graph to
-                remove the sharp increase in the loss values at high learning rates.
-        Returns:
-            tuple of (losses, learning rates)
-        """
+        
         if clip_beginning is not None and clip_beginning < 0:
             clip_beginning = -clip_beginning
 
@@ -513,19 +400,7 @@ class LRFinder(Callback):
                                 directory,
                                 clip_beginning=None,
                                 clip_endding=None):
-        """
-        Plots the schedule from the saved numpy arrays of the loss and learning
-        rate values in the specified directory.
-        # Arguments:
-            directory: String. Path to the directory where the serialized numpy
-                arrays of the loss and learning rates are saved.
-            clip_beginning: Integer or None. If positive integer, it will
-                remove the specified portion of the loss graph to remove the large
-                loss values in the beginning of the graph.
-            clip_endding: Integer or None. If negative integer, it will
-                remove the specified portion of the ending of the loss graph to
-                remove the sharp increase in the loss values at high learning rates.
-        """
+        
         try:
             import matplotlib.pyplot as plt
             plt.style.use('seaborn-white')
