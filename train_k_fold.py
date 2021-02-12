@@ -78,7 +78,7 @@ skf = StratifiedKFold(n_splits=n_folds)
 # Start K-Fold training
 for fold in range(n_folds):
 
-    filepath = 'resnext_cbam_model_' + str(fold) + '.h5'
+    filepath = 'proposed_model_' + str(fold) + '.h5'
 
     print("\nFOLD: {}".format(fold))
 
