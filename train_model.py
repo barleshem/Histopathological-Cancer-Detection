@@ -70,14 +70,11 @@ val_list = ['/path/to/dir'+ name + ".tif" for name in val_list]
 # Dictionary mapping Image IDs to corresponding labels....used in data_generator.py
 id_label_map = {k:v for k,v in zip(df.id.values, df.label.values)}
 
-# Using octaveresnet50 for training.
+# Using proposed_model for training.
 #We can use different models such as ResNeXt50, Seresnet50 by replacing them.
 
 #base_model = ResNextImageNet(include_top=False, weights=None,  input_shape=img_size)
-base_model = OctaveResNet50(input_shape=img_size, include_top=False,
-                           alpha=0.5, expansion=4,
-                           initial_filters=64,
-                           initial_strides=False)
+base_model = proposed_model()
 x = base_model.output
 
 out1 = GlobalMaxPooling2D()(x)
