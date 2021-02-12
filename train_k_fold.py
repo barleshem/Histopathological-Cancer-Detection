@@ -39,6 +39,7 @@ from Model.ResNeXt import *
 from Model.ResNeXt_CBAM import *
 from Model.se_resnext import *
 from Model.baseline_model import *
+from Model.proposed_model import *
 
 ###############
 # Configuration
@@ -98,10 +99,14 @@ for fold in range(n_folds):
     print(dict(zip(values,count)))
     
     # Defining ResNeXt_CBAM model
-    base_model = CBAMResNextImageNet(include_top=False, weights=None,  input_shape=img_size)
-    x = base_model.output
+#     base_model = CBAMResNextImageNet(include_top=False, weights=None,  input_shape=img_size)
+#     base_model = base_model.output
 
-    out1 = GlobalMaxPooling2D()(x)
+    # Loading our proposed model
+    base_model = proposed_model()
+    base_model = base_model.output
+    
+    out1 = GlobalMaxPooling2D()(base_model)
     out2 = GlobalAveragePooling2D()(x)
     #out3 = Flatten()(x)
     out = concatenate([out1,out2])
