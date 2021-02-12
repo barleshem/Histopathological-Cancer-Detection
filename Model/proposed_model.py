@@ -8,24 +8,29 @@ import keras.backend as K
 
 from custom_layers import Scale
 
-def proposed_model(nb_dense_block=4, growth_rate=32, nb_filter=64, reduction=0.0, dropout_rate=0.0, weight_decay=1e-4, classes=1000, weights_path=None):
+def proposed_model():
+    # Parameters set on our proposed model
+    nb_dense_block = 4
+    growth_rate = 32
+    nb_filter = 64
+    reduction = 0.0
+    dropout_rate = 0.0
+    weight_decay = 1e-4
     eps = 1.1e-5
 
     # compute compression factor
     compression = 1.0 - reduction
 
-    # Handle Dimension Ordering for different backends
     global concat_axis
     if K.image_dim_ordering() == 'tf':
       concat_axis = 3
-      img_input = Input(shape=(224, 224, 3), name='data')
+      img_input = Input(shape=(96, 96, 3), name='data')
     else:
       concat_axis = 1
-      img_input = Input(shape=(3, 224, 224), name='data')
+      img_input = Input(shape=(3, 96, 96), name='data')
 
-    # From architecture for ImageNet (Table 1 in the paper)
     nb_filter = 64
-    nb_layers = [6,12,32,32] # For DenseNet-169
+    nb_layers = [6,12,32,32]
 
     # Initial convolution
     x = ZeroPadding2D((3, 3), name='conv1_zeropadding')(img_input)
@@ -51,18 +56,10 @@ def proposed_model(nb_dense_block=4, growth_rate=32, nb_filter=64, reduction=0.0
     x = BatchNormalization(epsilon=eps, axis=concat_axis, name='conv'+str(final_stage)+'_blk_bn')(x)
     x = Scale(axis=concat_axis, name='conv'+str(final_stage)+'_blk_scale')(x)
     x = Activation('relu', name='relu'+str(final_stage)+'_blk')(x)
-    x = GlobalAveragePooling2D(name='pool'+str(final_stage))(x)
 
-    x = Dense(classes, name='fc6')(x)
-    x = Activation('softmax', name='prob')(x)
-
-    model = Model(img_input, x, name='densenet')
-
-    if weights_path is not None:
-      model.load_weights(weights_path)
+    model = Model(img_input, x, name='our_model')
 
     return model
-
 
 def conv_block(x, stage, branch, nb_filter, dropout_rate=None, weight_decay=1e-4):
     eps = 1.1e-5
